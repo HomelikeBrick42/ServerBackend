@@ -1,0 +1,9 @@
+[package]
+name = "web_server"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+axum = "0.6.10"
+serde = { version = "1.0.152", features = ["derive"] }
+tokio = { version = "1.26.0", features = ["full"] }
