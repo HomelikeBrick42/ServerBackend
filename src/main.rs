@@ -1,3 +1,5 @@
+use std::{io::Write, net::SocketAddr, process::Termination};
+
 use axum::{
     extract::State,
     http::{StatusCode, Uri},
@@ -7,8 +9,28 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 
-#[tokio::main]
-async fn main() {
+fn main() -> impl Termination {
+    tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .unwrap()
+        .block_on(main_())
+}
+
+async fn main_() -> impl Termination {
+    // oh no, im using stuff that blocks
+    // i cant figure out how to do this using async
+    print!("Enter the ip and port to use (e.g. 127.0.0.1:1234): ");
+    std::io::stdout().flush().unwrap();
+    let ip: SocketAddr = std::io::stdin()
+        .lines()
+        .next()
+        .unwrap()
+        .unwrap()
+        .trim()
+        .parse()
+        .unwrap();
+
     let router = Router::new()
         .route("/", get(root_get))
         .route("/seconds_since_start", post(seconds_since_start_get))
@@ -17,11 +39,11 @@ async fn main() {
             start_time: std::time::Instant::now(),
         });
 
-    let server = Server::bind(&"127.0.0.1:1234".parse().unwrap()).serve(router.into_make_service());
+    let server = Server::bind(&ip).serve(router.into_make_service());
     let addr = server.local_addr();
     println!("Listening on {addr}");
 
-    server.await.unwrap();
+    server.await
 }
 
 #[derive(Clone)]
